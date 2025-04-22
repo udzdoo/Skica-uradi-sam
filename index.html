@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Uradi Sam - Skica Radnje</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      margin: 0;
+    }
+    .store-layout {
+      position: relative;
+      width: 640px;
+      height: 480px;
+      background-color: #fff;
+      border: 2px solid #ccc;
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      grid-template-rows: repeat(9, 1fr);
+      gap: 20px;
+      padding: 10px;
+      margin-top: 10px;
+    }
+    .area {
+      background-color: #d9e4dd;
+      border: 1px solid #aaa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 2px;
+      position: relative;
+    }
+    .aisle {
+      background-color: transparent;
+      border: none;
+    }
+    .entrance { grid-column: 5 / span 4; grid-row: 1; background-color: #ffe9a3; }
+    .info { grid-column: 1 / span 2; grid-row: 1; background-color: #add8e6; }
+    .cashier { grid-column: 11 / span 2; grid-row: 9; background-color: #ffcccb; }
+    .paint { grid-column: 4 / span 2; grid-row: 4; background-color: #f9e79f; }
+    .tools { grid-column: 1 / span 2; grid-row: 2; }
+    .fasteners { grid-column: 1 / span 2; grid-row: 4; }
+    .electrical { grid-column: 9 / span 2; grid-row: 3; }
+    .plumbing { grid-column: 9 / span 2; grid-row: 4; }
+    .wood { grid-column: 4 / span 2; grid-row: 6; }
+    .protective { grid-column: 6 / span 2; grid-row: 8; }
+    .screws { grid-column: 1 / span 2; grid-row: 6; }
+    .adhesives { grid-column: 9 / span 2; grid-row: 6; }
+    .workbenches { grid-column: 4 / span 2; grid-row: 3; }
+
+    .product-label {
+      font-size: 10px;
+      text-align: center;
+      margin-top: 2px;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+  </style>
+</head>
+<body>
+  <h2>Skica Radnje "Uradi Sam"</h2>
+
+  <div class="store-layout" id="layout">
+    <canvas id="pathCanvas" width="640" height="480"></canvas>
+
+    <div class="area entrance">Ulaz</div>
+    <div class="area info">Info</div>
+    <div class="area cashier">Kasa</div>
+    <div class="area paint">Lak</div>
+    <div class="area tools">Bušilica<br>Čekić</div>
+    <div class="area fasteners">Kofer za alat</div>
+    <div class="area electrical">LED Reflektor</div>
+    <div class="area plumbing">Testera</div>
+    <div class="area wood">Radni sto</div>
+    <div class="area protective">Merdevine</div>
+    <div class="area screws">Kutija za delove</div>
+    <div class="area adhesives">Vosak</div>
+    <div class="area workbenches">Kućica za pse</div>
+
+    <!-- Aisles (putići) -->
+    <div class="aisle" style="grid-column: 3 / span 1; grid-row: 1 / span 9;"></div>
+    <div class="aisle" style="grid-column: 6 / span 1; grid-row: 1 / span 9;"></div>
+    <div class="aisle" style="grid-column: 9 / span 1; grid-row: 1 / span 9;"></div>
+    <div class="aisle" style="grid-column: 1 / span 12; grid-row: 3;"></div>
+    <div class="aisle" style="grid-column: 1 / span 12; grid-row: 5;"></div>
+    <div class="aisle" style="grid-column: 1 / span 12; grid-row: 7;"></div>
+  </div>
+
+  <script>
+    const coords = {
+      info: [50, 20],
+      busilica: [60, 100],
+      cekic: [60, 115],
+      reflektor: [490, 140],
+      testera: [490, 165],
+      sto: [210, 275],
+      merdevine: [270, 325],
+      lak: [210, 165],
+      kutija: [60, 275],
+      kofer: [60, 165],
+      kucica: [210, 140],
+      vosak: [490, 275]
+    };
+
+    function drawLine(from, to) {
+      const canvas = document.getElementById('pathCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.beginPath();
+      ctx.moveTo(...coords[from]);
+      ctx.lineTo(...coords[to]);
+      ctx.strokeStyle = 'red';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const proizvod = params.get('proizvod');
+    if (proizvod && coords[proizvod]) {
+      drawLine('info', proizvod);
+    }
+  </script>
+</body>
+</html>
