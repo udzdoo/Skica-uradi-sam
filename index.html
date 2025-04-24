@@ -1,138 +1,472 @@
 <!DOCTYPE html>
 <html lang="sr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Uradi Sam - Skica Radnje</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-      margin: 0;
-    }
-    .store-layout {
-      position: relative;
-      width: 640px;
-      height: 480px;
-      background-color: #fff;
-      border: 2px solid #ccc;
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      grid-template-rows: repeat(9, 1fr);
-      gap: 20px;
-      padding: 10px;
-      margin-top: 10px;
-    }
-    .area {
-      background-color: #d9e4dd;
-      border: 1px solid #aaa;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      font-size: 12px;
-      font-weight: bold;
-      padding: 2px;
-      position: relative;
-    }
-    .aisle {
-      background-color: transparent;
-      border: none;
-    }
-    .entrance { grid-column: 5 / span 4; grid-row: 1; background-color: #ffe9a3; }
-    .info { grid-column: 1 / span 2; grid-row: 1; background-color: #add8e6; }
-    .cashier { grid-column: 11 / span 2; grid-row: 9; background-color: #ffcccb; }
-    .paint { grid-column: 4 / span 2; grid-row: 4; background-color: #f9e79f; }
-    .tools { grid-column: 1 / span 2; grid-row: 2; }
-    .fasteners { grid-column: 1 / span 2; grid-row: 4; }
-    .electrical { grid-column: 9 / span 2; grid-row: 3; }
-    .plumbing { grid-column: 9 / span 2; grid-row: 4; }
-    .wood { grid-column: 4 / span 2; grid-row: 6; }
-    .protective { grid-column: 6 / span 2; grid-row: 8; }
-    .screws { grid-column: 1 / span 2; grid-row: 6; }
-    .adhesives { grid-column: 9 / span 2; grid-row: 6; }
-    .workbenches { grid-column: 4 / span 2; grid-row: 3; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Uradi Sam - Mapa sa Animacijom</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8f9fa;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        margin: 0;
+      }
+      .search-container {
+        margin-bottom: 15px;
+        display: flex;
+        gap: 8px;
+      }
+      .search-container input {
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+        width: 300px;
+        transition: border-color 0.3s;
+      }
+      .search-container input:focus {
+        border-color: #e74c3c;
+        outline: none;
+      }
+      .search-container button {
+        padding: 8px 16px;
+        background-color: #e74c3c;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      .search-container button:hover {
+        background-color: #c0392b;
+      }
+      .store-container {
+        width: 900px;
+        height: 650px;
+        position: relative;
+        background-color: white;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .aisle {
+        position: absolute;
+        background-color: #e0e0e0;
+        z-index: 1;
+      }
+      .main-aisle {
+        background-color: #ccc;
+      }
+      .product-icon {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 70px;
+        height: 70px;
+        z-index: 2;
+        cursor: pointer;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+      }
+      .product-icon i {
+        font-size: 24px;
+        color: #2c3e50;
+        margin-bottom: 5px;
+      }
+      .product-icon span {
+        font-size: 10px;
+        font-weight: 600;
+        color: #34495e;
+        text-align: center;
+        max-width: 60px;
+      }
+      .highlight {
+        animation: pulse 1.5s infinite;
+        box-shadow: 0 0 0 5px rgba(231, 76, 60, 0.3);
+      }
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+      #routeCanvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 3;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Interaktivna Mapa Radnje "Uradi Sam"</h2>
+    <p>Unesi naziv proizvoda ili sekcije, pa klikni dugme za prikaz rute.</p>
+    <div class="search-container">
+      <input type="text" id="productInput" placeholder="Npr. Bušilica" />
+      <button id="goBtn">Prikaži Rutu</button>
+    </div>
+    <div class="store-container">
+      <!-- Glavne i sporedne staze -->
+      <div
+        class="aisle main-aisle"
+        style="width: 497px; height: 10px; top: 100px; left: 213px"
+      ></div>
+      <div
+        class="aisle main-aisle"
+        style="width: 10px; height: 400px; top: 100px; left: 450px"
+      ></div>
+      <div
+        class="aisle"
+        style="width: 10px; height: 400px; top: 100px; left: 340px"
+      ></div>
+      <div
+        class="aisle"
+        style="width: 10px; height: 400px; top: 100px; left: 700px"
+      ></div>
+      <div
+        class="aisle"
+        style="width: 240px; height: 10px; top: 200px; left: 220px"
+      ></div>
+      <div
+        class="aisle"
+        style="width: 240px; height: 10px; top: 300px; left: 220px"
+      ></div>
+      <div
+        class="aisle"
+        style="width: 240px; height: 10px; top: 400px; left: 220px"
+      ></div>
+      <div
+        class="aisle"
+        style="width: 240px; height: 10px; top: 200px; left: 460px"
+      ></div>
+      <div
+        class="aisle"
+        style="width: 240px; height: 10px; top: 300px; left: 460px"
+      ></div>
+      <div
+        class="aisle"
+        style="width: 240px; height: 10px; top: 400px; left: 460px"
+      ></div>
+      <div
+        class="aisle"
+        style="width: 10px; height: 400px; top: 100px; left: 213px"
+      ></div>
+      <div
+        class="aisle"
+        style="width: 497px; height: 10px; top: 500px; left: 213px"
+      ></div>
 
-    .product-label {
-      font-size: 10px;
-      text-align: center;
-      margin-top: 2px;
-    }
+      <!-- Sekcije ikone -->
+      <div
+        class="product-icon"
+        style="top: 20px; left: 420px"
+        data-section="info"
+      >
+        <i class="fas fa-info-circle"></i><span>Info Pult</span>
+      </div>
+      <div
+        class="product-icon"
+        style="top: 20px; left: 670px"
+        data-section="ulaz"
+      >
+        <i class="fas fa-door-open"></i><span>Ulaz</span>
+      </div>
+      <div
+        class="product-icon"
+        style="top: 120px; left: 245px"
+        data-section="electricTools"
+      >
+        <i class="fas fa-bolt"></i><span>Električni alati</span>
+      </div>
+      <div
+        class="product-icon"
+        style="top: 120px; left: 360px"
+        data-section="tools"
+      >
+        <i class="fas fa-tools"></i><span>Ručni alati</span>
+      </div>
+      <div
+        class="product-icon"
+        style="top: 220px; left: 245px"
+        data-section="storage"
+      >
+        <i class="fas fa-boxes"></i><span>Skladište</span>
+      </div>
+      <div
+        class="product-icon"
+        style="top: 220px; left: 360px"
+        data-section="materials"
+      >
+        <i class="fas fa-hammer"></i><span>Građevinski materijal</span>
+      </div>
+      <div
+        class="product-icon"
+        style="top: 320px; left: 245px"
+        data-section="ladders"
+      >
+        <i class="fas fa-tape"></i><span>Merdevine</span>
+      </div>
+      <div
+        class="product-icon"
+        style="top: 320px; left: 360px"
+        data-section="hardware"
+      >
+        <i class="fas fa-screwdriver"></i><span>Okovi i šrafovi</span>
+      </div>
+      <div
+        class="product-icon"
+        style="top: 320px; left: 360px"
+        data-section="toolboxes"
+      >
+        <i class="fas fa-toolbox"></i><span>Kutije za alat</span>
+      </div>
+      <div
+        class="product-icon"
+        style="top: 420px; left: 245px"
+        data-section="safety"
+      >
+        <i class="fas fa-hard-hat"></i><span>Zaštitna oprema</span>
+      </div>
+      <div
+        class="product-icon"
+        style="top: 120px; left: 490px"
+        data-section="paint"
+      >
+        <i class="fas fa-paint-roller"></i><span>Boje i lakovi</span>
+      </div>
+      <div
+        class="product-icon"
+        style="top: 120px; left: 600px"
+        data-section="brushes"
+      >
+        <i class="fas fa-brush"></i><span>Četke i valjci</span>
+      </div>
+      <div
+        class="product-icon"
+        style="top: 220px; left: 490px"
+        data-section="plumbing"
+      >
+        <i class="fas fa-faucet"></i><span>Vodovod</span>
+      </div>
+      <div
+        class="product-icon"
+        style="top: 220px; left: 600px"
+        data-section="sanitary"
+      >
+        <i class="fas fa-toilet"></i><span>Sanitarije</span>
+      </div>
+      <div
+        class="product-icon"
+        style="top: 320px; left: 490px"
+        data-section="garden"
+      >
+        <i class="fas fa-leaf"></i><span>Baštenski alat</span>
+      </div>
+      <div
+        class="product-icon"
+        style="top: 320px; left: 600px"
+        data-section="wood"
+      >
+        <i class="fas fa-tree"></i><span>Drvna građa</span>
+      </div>
+      <div
+        class="product-icon"
+        style="top: 420px; left: 490px"
+        data-section="chemicals"
+      >
+        <i class="fas fa-flask"></i><span>Hemikalije</span>
+      </div>
+      <div
+        class="product-icon"
+        style="top: 420px; left: 600px"
+        data-section="electrical"
+      >
+        <i class="fas fa-plug"></i><span>Električni materijal</span>
+      </div>
+      <div
+        class="product-icon"
+        style="top: 420px; left: 360px"
+        data-section="ostalo"
+      >
+        <i class="fas fa-ellipsis-h"></i><span>Ostalo</span>
+      </div>
+      <div
+        class="product-icon"
+        style="top: 520px; left: 670px"
+        data-section="blagajna"
+      >
+        <i class="fas fa-cash-register"></i><span>Blagajna</span>
+      </div>
 
-    canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      z-index: 0;
-    }
-  </style>
-</head>
-<body>
-  <h2>Skica Radnje "Uradi Sam"</h2>
+      <canvas id="routeCanvas" width="900" height="650"></canvas>
+    </div>
 
-  <div class="store-layout" id="layout">
-    <canvas id="pathCanvas" width="640" height="480"></canvas>
+    <script>
+      const keywordsMap = [
+        { section: "info", keywords: ["info", "info pult"] },
+        { section: "ulaz", keywords: ["ulaz"] },
+        { section: "blagajna", keywords: ["blagajna"] },
+        {
+          section: "electricTools",
+          keywords: ["busilica", "brusilica", "testera", "heftalica", "tester"],
+        },
+        { section: "tools", keywords: ["čekić", "cevijač", "odvijač"] },
+        { section: "toolboxes", keywords: ["kofer", "kutija"] },
+        { section: "ladders", keywords: ["merdevine"] },
+        { section: "paint", keywords: ["lak", "boja"] },
+        { section: "brushes", keywords: ["valjak", "četk"] },
+        { section: "garden", keywords: ["baštenski", "makaze"] },
+        { section: "wood", keywords: ["medijapan", "ograda", "polica"] },
+        { section: "chemicals", keywords: ["lepak"] },
+        { section: "electrical", keywords: ["reflektor"] },
+        { section: "ostalo", keywords: [] },
+      ];
 
-    <div class="area entrance">Ulaz</div>
-    <div class="area info">Info</div>
-    <div class="area cashier">Kasa</div>
-    <div class="area paint">Lak</div>
-    <div class="area tools">Bušilica<br>Čekić</div>
-    <div class="area fasteners">Kofer za alat</div>
-    <div class="area electrical">LED Reflektor</div>
-    <div class="area plumbing">Testera</div>
-    <div class="area wood">Radni sto</div>
-    <div class="area protective">Merdevine</div>
-    <div class="area screws">Kutija za delove</div>
-    <div class="area adhesives">Vosak</div>
-    <div class="area workbenches">Kućica za pse</div>
+      function animateRoute(path) {
+        const canvas = document.getElementById("routeCanvas");
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = "#e74c3c";
+        ctx.lineWidth = 4;
+        let i = 0,
+          t = 0,
+          step = 0.02;
+        const interp = (a, b, t) => ({
+          x: a.x + (b.x - a.x) * t,
+          y: a.y + (b.y - a.y) * t,
+        });
+        function draw() {
+          if (i >= path.length - 1) return;
+          const p1 = path[i],
+            p2 = path[i + 1];
+          const pt = interp(p1, p2, t);
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(pt.x, pt.y);
+          ctx.stroke();
+          t += step;
+          if (t >= 1) {
+            t = 0;
+            i++;
+          }
+          requestAnimationFrame(draw);
+        }
+        draw();
+      }
 
-    <!-- Aisles (putići) -->
-    <div class="aisle" style="grid-column: 3 / span 1; grid-row: 1 / span 9;"></div>
-    <div class="aisle" style="grid-column: 6 / span 1; grid-row: 1 / span 9;"></div>
-    <div class="aisle" style="grid-column: 9 / span 1; grid-row: 1 / span 9;"></div>
-    <div class="aisle" style="grid-column: 1 / span 12; grid-row: 3;"></div>
-    <div class="aisle" style="grid-column: 1 / span 12; grid-row: 5;"></div>
-    <div class="aisle" style="grid-column: 1 / span 12; grid-row: 7;"></div>
-  </div>
+      function getSegments() {
+        const cont = document
+          .querySelector(".store-container")
+          .getBoundingClientRect();
+        const segs = [];
+        document.querySelectorAll(".aisle").forEach((a) => {
+          const r = a.getBoundingClientRect();
+          const left = r.left - cont.left,
+            top = r.top - cont.top;
+          if (r.width > r.height)
+            segs.push({
+              type: "h",
+              x1: left,
+              x2: left + r.width,
+              y: top + r.height / 2,
+            });
+          else
+            segs.push({
+              type: "v",
+              x: left + r.width / 2,
+              y1: top,
+              y2: top + r.height,
+            });
+        });
+        return segs;
+      }
 
-  <script>
-    const coords = {
-      info: [50, 20],
-      busilica: [60, 100],
-      cekic: [60, 115],
-      reflektor: [490, 140],
-      testera: [490, 165],
-      sto: [210, 275],
-      merdevine: [270, 325],
-      lak: [210, 165],
-      kutija: [60, 275],
-      kofer: [60, 165],
-      kucica: [210, 140],
-      vosak: [490, 275]
-    };
+      function navigateToSection(section) {
+        const icon = document.querySelector(
+          `.product-icon[data-section="${section}"]`
+        );
+        if (!icon || section === "info") return;
+        document
+          .querySelectorAll(".product-icon")
+          .forEach((i) => i.classList.remove("highlight"));
+        icon.classList.add("highlight");
+        const contRect = document
+          .querySelector(".store-container")
+          .getBoundingClientRect();
+        const infoRect = document
+          .querySelector('[data-section="info"]')
+          .getBoundingClientRect();
+        const endRect = icon.getBoundingClientRect();
+        const start = {
+          x: infoRect.left - contRect.left + infoRect.width / 2,
+          y: infoRect.top - contRect.top + infoRect.height / 2,
+        };
+        const end = {
+          x: endRect.left - contRect.left + endRect.width / 2,
+          y: endRect.top - contRect.top + endRect.height / 2,
+        };
+        const segs = getSegments();
+        const hs = segs.filter((s) => s.type === "h");
+        const vs = segs.filter((s) => s.type === "v");
+        const top = hs.reduce((a, b) => (a.y < b.y ? a : b)).y;
+        let xCorr = vs[0].x,
+          best = Math.abs(end.x - xCorr);
+        vs.forEach((s) => {
+          const d = Math.abs(end.x - s.x);
+          if (d < best) {
+            best = d;
+            xCorr = s.x;
+          }
+        });
+        const path = [
+          start,
+          { x: start.x, y: top },
+          { x: xCorr, y: top },
+          { x: xCorr, y: end.y },
+          end,
+        ];
+        animateRoute(path);
+      }
 
-    function drawLine(from, to) {
-      const canvas = document.getElementById('pathCanvas');
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.beginPath();
-      ctx.moveTo(...coords[from]);
-      ctx.lineTo(...coords[to]);
-      ctx.strokeStyle = 'red';
-      ctx.lineWidth = 3;
-      ctx.stroke();
-    }
+      document.getElementById("goBtn").addEventListener("click", () => {
+        const input = document
+          .getElementById("productInput")
+          .value.trim()
+          .toLowerCase();
+        let section = "ostalo";
+        for (let entry of keywordsMap) {
+          if (entry.keywords.some((kw) => input.includes(kw))) {
+            section = entry.section;
+            break;
+          }
+        }
+        navigateToSection(section);
+      });
 
-    const params = new URLSearchParams(window.location.search);
-    const proizvod = params.get('proizvod');
-    if (proizvod && coords[proizvod]) {
-      drawLine('info', proizvod);
-    }
-  </script>
-</body>
+      document
+        .querySelectorAll(".product-icon[data-section]")
+        .forEach((icon) => {
+          icon.addEventListener("click", () =>
+            navigateToSection(icon.dataset.section)
+          );
+        });
+    </script>
+  </body>
 </html>
